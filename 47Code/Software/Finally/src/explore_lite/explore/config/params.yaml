@@ -1,0 +1,14 @@
+/**:
+  ros__parameters:
+    robot_base_frame: base_link       #指定机器人本体的坐标系名称。通常就是 base_link。
+    return_to_init: false              #当设置为 true时，表示在探索过程结束（通常是没有找到新的边界）后，机器人应该尝试返回到它开始探索时的初始位置。设置为 false则机器人会停在探索结束时的位置。
+    costmap_topic: map                #指定包含全局成本地图的 ROS 话题名称。
+    costmap_updates_topic: map_updates        #指定包含成本地图增量更新的 ROS 话题名称。
+    visualize: true                 #设置为 true时，explore_lite会在 RViz 中发布可视化信息。这通常包括检测到的边界点（用点云或标记表示）、当前目标边界点等。这对于调试和理解探索行为非常有帮助。
+    planner_frequency: 0.1   #指定 explore_lite尝试重新计算路径和选择新目标的频率。这里设置为 0.15 Hz，意味着大约每 6.67 秒（1 / 0.15）规划一次。设置较低频率是为了避免过于频繁的重新规划消耗过多计算资源，尤其是在边界变化不快的情况下。
+    progress_timeout: 30.0    #定义机器人被判定为“卡住”或“无法到达目标”的时间阈值。如果机器人在这个设定的时间内（这里是 30 秒）未能显著接近其当前目标边界（例如，距离没有明显减小），explore_lite会放弃当前目标，并尝试选择一个新的边界点作为目标。
+    potential_scale: 3.0      #这是边界点“得分”计算公式中的一个权重因子。该公式通常类似于：score = gain_scale * size - potential_scale * distance。potential_scale放大了距离（distance）项的负向影响。​​增大此值​​会使算法更倾向于选择​​距离机器人更近​​的边界（即使它们可能较小），因为距离成本被放大了。​​减小此值​​会使算法更不在意距离，更看重边界的大小（gain_scale * size）。
+    orientation_scale: 0.0    #这是边界点“得分”计算公式中的另一个权重因子（如果实现中包含方向项）。公式可能扩展为：score = gain_scale * size - potential_scale * distance - orientation_scale * orientation_difference。orientation_difference表示机器人当前朝向与指向边界点所需朝向之间的角度差。​​增大此值​​会使算法更倾向于选择​​机器人当前朝向正前方​​的边界点（减少旋转成本）。​​设置为 0.0（如本例）​​ 表示在计算边界点得分时​​完全不考虑机器人的朝向​​，只关心大小和距离。
+    gain_scale: 1.0           #这是边界点“得分”计算公式中边界大小（size）项的权重因子（公式见 potential_scale解释）。size通常代表该边界区域背后未知区域的大小（增益）。​​增大此值​​会使算法更倾向于选择​​背后未知区域更大​​的边界（即使它们可能更远），因为大小的增益被放大了。​​减小此值​​会使算法更看重距离成本（potential_scale * distance）。
+    transform_tolerance: 0.3  #指定在查找坐标变换（TF）时允许的最大时间差（时间容忍度）。例如，当需要获取 robot_base_frame相对于 map帧的位置时，如果最新的可用变换时间戳与当前时间相差超过 0.3 秒，则可能认为该变换已过期或不可靠。这有助于处理 TF 树更新可能存在的延迟。
+    min_frontier_size: 0.75   #定义被视为有效探索目标的边界所需的最小尺寸（通常指边界点集合形成的区域的宽度或直径）。任何尺寸小于此值（0.75 米）的边界簇将被忽略。这可以防止机器人浪费时间去探索非常狭窄或可能是传感器噪声产生的小缝隙。
